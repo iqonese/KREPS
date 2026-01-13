@@ -216,7 +216,6 @@ class DocumentIngestion:
     def _generate_metadata(self, documents: List[Document]) -> dict:
         """
         Generate metadata about processed documents.
-
         Returns:
             dict: Metadata including number of documents and language breakdown
         """
