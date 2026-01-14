@@ -2,6 +2,14 @@ from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
 from pathlib import Path
+from transformers import AutoTokenizer
+
+# Load BGE-M3 tokenizer (used only for token counting)
+tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-m3")
+
+# This function is only for counting the number the tokens in a text
+def token_length(text: str) -> int:
+    return len(tokenizer.encode(text, add_special_tokens=False))
 
 
 def process_document(file_path, chunk_size=500, chunk_overlap=100):
@@ -33,7 +41,7 @@ def process_document(file_path, chunk_size=500, chunk_overlap=100):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        length_function=len,
+        length_function=token_length,
         separators=["\n\n", "\n", ". ", " ", ""]
     )
 
@@ -104,7 +112,7 @@ def get_chunk_statistics(chunks):
     if not chunks:
         return {"total_chunks": 0}
 
-    chunk_lengths = [len(chunk.page_content) for chunk in chunks]
+    chunk_lengths = [token_length(chunk.page_content) for chunk in chunks]
 
     # Get unique source files
     sources = set(chunk.metadata.get('filename', 'unknown') for chunk in chunks)
@@ -154,14 +162,14 @@ if __name__ == "__main__":
     # Process all documents in a directory
     print("Example 2: Process directory of documents")
     print("-" * 80)
-    all_chunks = process_directory("./documents", chunk_size=500, chunk_overlap=200)
+    all_chunks = process_directory("./documents", chunk_size=500, chunk_overlap=100)
 
     # Get statistics
     stats = get_chunk_statistics(all_chunks)
     print(f"\nStatistics:")
     print(f"  Total chunks: {stats['total_chunks']}")
     print(f"  Total documents: {stats['total_documents']}")
-    print(f"  Average chunk length: {stats['avg_chunk_length']:.0f} characters")
+    print(f"  Average chunk length: {stats['avg_chunk_length']:.0f} tokens")
     print(f"  Min/Max chunk length: {stats['min_chunk_length']}/{stats['max_chunk_length']}")
 
     # Save chunks to file for inspection
