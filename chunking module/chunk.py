@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 
-def process_document(file_path, chunk_size=1000, chunk_overlap=200):
+def process_document(file_path, chunk_size=500, chunk_overlap=100):
     """
     Load and chunk a single PDF or DOCX file
 
@@ -48,7 +48,7 @@ def process_document(file_path, chunk_size=1000, chunk_overlap=200):
     return chunks
 
 
-def process_directory(directory_path, chunk_size=1000, chunk_overlap=200):
+def process_directory(directory_path, chunk_size=500, chunk_overlap=100):
     """
     Process all PDFs and DOCX files in a directory
 
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # Process all documents in a directory
     print("Example 2: Process directory of documents")
     print("-" * 80)
-    all_chunks = process_directory("./documents", chunk_size=1000, chunk_overlap=200)
+    all_chunks = process_directory("./documents", chunk_size=500, chunk_overlap=200)
 
     # Get statistics
     stats = get_chunk_statistics(all_chunks)
