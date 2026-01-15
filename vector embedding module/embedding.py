@@ -85,12 +85,12 @@ class VectorEmbeddingModule:
             text = [text]
 
         # FlagEmbedding returns dense vectors
-        results = self.model.encode(text, return_dense=True, return_sparse=False)
+        results = self.model.encode(text, return_dense=True, return_sparse=False, return_colbert=False,normalize_embeddings=True)
         embeddings = np.array(results['dense_vecs'])
 
         return embeddings
 
-        return embeddings
+
 
     def add_documents(
             self,
