@@ -1,11 +1,12 @@
 """
 Vector Embedding Module using ChromaDB and BGE-M3
 Provides efficient document storage, retrieval, and semantic search capabilities.
+install Flagembedding via `pip install FlagEmbedding`
 """
 
 import chromadb
 from chromadb.config import Settings
-from sentence_transformers import SentenceTransformer
+from FlagEmbedding import BGEM3FlagModel
 from typing import List, Dict, Optional, Union
 import numpy as np
 from pathlib import Path
@@ -51,8 +52,8 @@ class VectorEmbeddingModule:
 
         # Load BGE-M3 model
         print(f"Loading embedding model: {model_name}")
-        self.model = SentenceTransformer(model_name)
-        self.embedding_dim = self.model.get_sentence_embedding_dimension()
+        self.model = BGEM3FlagModel(model_name, use_fp16=True)
+        self.embedding_dim = 1024  # BGE-M3 uses 1024 dimensions
 
         # Get or create collection
         self.collection = self._get_or_create_collection()
@@ -83,11 +84,11 @@ class VectorEmbeddingModule:
         if isinstance(text, str):
             text = [text]
 
-        embeddings = self.model.encode(
-            text,
-            normalize_embeddings=True,
-            show_progress_bar=len(text) > 10
-        )
+        # FlagEmbedding returns dense vectors
+        results = self.model.encode(text, return_dense=True, return_sparse=False)
+        embeddings = np.array(results['dense_vecs'])
+
+        return embeddings
 
         return embeddings
 
