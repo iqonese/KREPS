@@ -60,6 +60,7 @@ Answer: Provide a clear, accurate answer based only on the context above. If the
         context_parts = []
         total_tokens = 0
 
+
         for i, chunk in enumerate(retrieved_chunks, 1):
             content = chunk.get('content', '')
             metadata = chunk.get('metadata', {})
