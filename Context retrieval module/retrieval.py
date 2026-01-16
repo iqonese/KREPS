@@ -13,7 +13,7 @@ class ContextRetrieval:
     def __init__(
             self,
             similarity_search: SimilaritySearch,
-            top_k: int = 7
+            top_k: int = 6
     ):
         """
         Initialize context retrieval module.
