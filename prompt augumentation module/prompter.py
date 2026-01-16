@@ -6,7 +6,6 @@ Formats retrieved context and user query into structured prompt for LLM
 from langchain.prompts import PromptTemplate
 from typing import List, Dict
 
-
 class PrompterModule:
     """Handles prompt construction for RAG pipeline"""
 

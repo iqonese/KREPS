@@ -5,7 +5,6 @@ Tests prompt augmentation and formatting
 
 from prompter import PrompterModule
 
-
 def test_prompter():
     """Test PrompterModule functionality"""
 
