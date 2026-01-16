@@ -10,15 +10,14 @@ from typing import List, Dict
 class PrompterModule:
     """Handles prompt construction for RAG pipeline"""
 
-    def __init__(self, max_context_length: int = 20000):
+    def __init__(self, max_context_tokens: int = 5000):
         """
         Initialize prompter module
 
         Args:
-            max_context_length: Maximum characters for context
-                              (default: 20000 chars ~5000 tokens)
+            max_context_tokens: Maximum tokens for context
         """
-        self.max_context_length = max_context_length
+        self.max_context_tokens = max_context_tokens
         self.template = self._create_template()
 
     def _create_template(self) -> PromptTemplate:
@@ -37,6 +36,18 @@ Answer: Provide a clear, accurate answer based only on the context above. If the
             template=template
         )
 
+    def _estimate_tokens(self, text: str) -> int:
+        """
+        Estimate token count from text
+
+        Args:
+            text: Input text string
+
+        Returns:
+            Estimated token count
+        """
+        return max(len(text) // 4, len(text.split()))
+
     def format_context(self, retrieved_chunks: List[Dict]) -> str:
         """
         Format retrieved chunks into context string
@@ -48,22 +59,21 @@ Answer: Provide a clear, accurate answer based only on the context above. If the
             Formatted context string
         """
         context_parts = []
-        total_length = 0
+        total_tokens = 0
 
         for i, chunk in enumerate(retrieved_chunks, 1):
-            # Match structure from contextretrieval.py
             content = chunk.get('content', '')
             metadata = chunk.get('metadata', {})
             source = metadata.get('source', 'Unknown')
 
             part = f"[{i}] Source: {source}\n{content}\n"
+            part_tokens = self._estimate_tokens(part)
 
-            # Check if adding this chunk exceeds limit
-            if total_length + len(part) > self.max_context_length:
+            if total_tokens + part_tokens > self.max_context_tokens:
                 break
 
             context_parts.append(part)
-            total_length += len(part)
+            total_tokens += part_tokens
 
         return "\n".join(context_parts)
 
@@ -81,3 +91,4 @@ Answer: Provide a clear, accurate answer based only on the context above. If the
         context = self.format_context(retrieved_chunks)
         prompt = self.template.format(context=context, question=query)
         return prompt
+

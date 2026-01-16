@@ -13,12 +13,10 @@ def test_prompter():
     print("TESTING PROMPTER MODULE")
     print("=" * 60)
 
-    # Initialize prompter
-    prompter = PrompterModule(max_context_length=20000)
+    prompter = PrompterModule(max_context_tokens=5000)
     print("\n✓ PrompterModule initialized")
-    print(f"  Max context length: {prompter.max_context_length} characters")
+    print(f"  Max context tokens: {prompter.max_context_tokens} tokens")
 
-    # Test 1: Basic prompt augmentation
     print("\n" + "=" * 60)
     print("TEST 1: Basic Prompt Augmentation")
     print("=" * 60)
@@ -51,39 +49,36 @@ def test_prompter():
     print(augmented_prompt)
     print("-" * 60)
 
-    # Test 2: Context length limit
     print("\n" + "=" * 60)
-    print("TEST 2: Context Length Limiting")
+    print("TEST 2: Token Limit")
     print("=" * 60)
 
-    # Create prompter with small limit
-    small_prompter = PrompterModule(max_context_length=200)
+    small_prompter = PrompterModule(max_context_tokens=50)
 
     long_chunks = [
         {
-            'content': 'A' * 150,  # 150 characters
+            'content': 'A' * 150,
             'metadata': {'source': 'doc1.pdf', 'chunk_id': 0},
             'similarity_score': 0.9
         },
         {
-            'content': 'B' * 150,  # 150 characters
+            'content': 'B' * 150,
             'metadata': {'source': 'doc2.pdf', 'chunk_id': 1},
             'similarity_score': 0.8
         },
         {
-            'content': 'C' * 150,  # 150 characters (should be excluded)
+            'content': 'C' * 150,
             'metadata': {'source': 'doc3.pdf', 'chunk_id': 2},
             'similarity_score': 0.7
         }
     ]
 
     context = small_prompter.format_context(long_chunks)
-    print(f"\nMax context length: {small_prompter.max_context_length} chars")
+    print(f"\nMax context tokens: {small_prompter.max_context_tokens} tokens")
     print(f"Total chunks provided: {len(long_chunks)}")
-    print(f"Context length after limiting: {len(context)} chars")
-    print(f"Chunks included: {context.count('[')}")  # Count source markers
+    print(f"Estimated context tokens: ~{small_prompter._estimate_tokens(context)}")
+    print(f"Chunks included: {context.count('[')}")
 
-    # Test 3: Empty chunks
     print("\n" + "=" * 60)
     print("TEST 3: Empty Chunks Handling")
     print("=" * 60)
@@ -92,7 +87,6 @@ def test_prompter():
     empty_prompt = prompter.augment_prompt("Test query?", empty_chunks)
     print(f"\nEmpty chunks handled: {'Context:\n\n' in empty_prompt}")
 
-    # Test 4: Multiple chunks with token estimation
     print("\n" + "=" * 60)
     print("TEST 4: Realistic RAG Scenario (7 chunks)")
     print("=" * 60)
@@ -112,21 +106,21 @@ def test_prompter():
     print(f"\nQuery: {realistic_query}")
     print(f"Chunks retrieved: {len(realistic_chunks)}")
     print(f"Prompt length: {len(realistic_prompt)} characters")
-    print(f"Estimated tokens: ~{len(realistic_prompt) // 4}")
+    print(f"Estimated tokens: ~{prompter._estimate_tokens(realistic_prompt)}")
     print(f"\nFirst 500 chars of prompt:")
     print("-" * 60)
     print(realistic_prompt[:500] + "...")
     print("-" * 60)
 
-    # Summary
     print("\n" + "=" * 60)
     print("TEST SUMMARY")
     print("=" * 60)
     print("✓ All tests completed successfully")
     print("✓ Prompt augmentation working")
-    print("✓ Context length limiting working")
+    print("✓ Token limiting working")
     print("✓ Edge cases handled")
 
 
 if __name__ == "__main__":
     test_prompter()
+
