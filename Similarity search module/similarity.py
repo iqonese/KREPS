@@ -3,7 +3,7 @@ Similarity Search Module - KREPS Project
 Searches vector database for similar chunks
 """
 from typing import Dict
-from vectordatabase import VectorDatabase
+from vdb import VectorDatabase
 from embedding import VectorEmbeddingModule
 
 
