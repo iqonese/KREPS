@@ -4,11 +4,12 @@ Orchestrates all modules: ingestion pipeline and RAG query system
 """
 import os
 import sys
-from docingestion.docingestion import DocumentIngestion
-from chunking.chunking import DocumentChunking
-from vdb.vdb import VectorDatabase
-from embedding.embedding import VectorEmbeddingModule
-from rag_system.rag_system import QwenRAGSystem
+from chunk import process_directory
+from vdb import VectorDatabase
+from embedding import VectorEmbeddingModule
+from rag import QwenRAGSystem
+from api import app  # Only imported when needed
+
 
 
 def run_ingestion_pipeline(folder_path: str, collection_name: str = "kreps_documents"):
