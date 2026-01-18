@@ -5,7 +5,7 @@ Exposes HTTP endpoints for frontend integration
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from rag_system import QwenRAGSystem
+from rag import QwenRAGSystem
 from werkzeug.utils import secure_filename
 import os
 import traceback

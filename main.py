@@ -4,52 +4,36 @@ Orchestrates all modules: ingestion pipeline and RAG query system
 """
 import os
 import sys
-from docingestion.docingestion import DocumentIngestion
-from chunking.chunking import DocumentChunking
-from vdb.vdb import VectorDatabase
-from embedding.embedding import VectorEmbeddingModule
-from rag_system.rag_system import QwenRAGSystem
+from chunk import process_directory
+from vdb import VectorDatabase
+from embedding import VectorEmbeddingModule
+from rag import QwenRAGSystem
 
 
 def run_ingestion_pipeline(folder_path: str, collection_name: str = "kreps_documents"):
     """
     Orchestrates complete ingestion pipeline.
-    Connects: DocumentIngestion -> Chunking -> Embedding -> VectorDB
+    Connects: Chunking -> Embedding -> VectorDB
     """
     # Initialize modules
-    doc_loader = DocumentIngestion(folder_path)
-    chunker = DocumentChunking(chunk_size=500, chunk_overlap=50)
     embedding_module = VectorEmbeddingModule()
     vector_db = VectorDatabase(collection_name=collection_name)
 
-    # Step 1: Load documents
-    documents = doc_loader.load_all_documents()
-    if not documents:
+    # Step 1: Chunk documents
+    chunks = process_directory(folder_path, chunk_size=500, chunk_overlap=100)
+    if not chunks:
         print("ERROR: No documents found")
         return False
 
-    # Step 2: Chunk documents
-    all_chunks = []
-    for doc in documents:
-        chunks = chunker.chunk_document(
-            doc['content'],
-            doc['filename'],
-            doc.get('metadata', {})
-        )
-        all_chunks.extend(chunks)
-
-    # Step 3: Generate embeddings
-    chunk_texts = [chunk['content'] for chunk in all_chunks]
+    # Step 2: Generate embeddings
+    chunk_texts = [chunk.page_content for chunk in chunks]
     embeddings = embedding_module.embed_documents(chunk_texts)
 
-    # Step 4: Store in vector database
-    for chunk, embedding in zip(all_chunks, embeddings):
-        vector_db.add_chunk(
-            chunk_id=chunk['chunk_id'],
-            content=chunk['content'],
-            embedding=embedding,
-            metadata=chunk['metadata']
-        )
+    # Step 3: Store in vector database
+    vector_db.store_chunks_with_embeddings(
+        chunks=chunks,
+        embeddings=embeddings
+    )
 
     stats = vector_db.get_database_stats()
     print(f"Ingestion complete: {stats['total_chunks']} chunks from {stats['unique_documents']} documents")
@@ -102,7 +86,7 @@ def run_api_server():
     Launch Flask API server for frontend integration.
     """
     print("Starting API server on http://localhost:5000\n")
-    from api_server.api_server import app
+    from api import app
     app.run(host='0.0.0.0', port=5000, debug=True)
 
 
