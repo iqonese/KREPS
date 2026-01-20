@@ -96,7 +96,7 @@ def upload():
                 saved_files.append(filename)
 
         if not saved_files:
-            return jsonify({'error': 'No valid files uploaded. Only PDF and TXT files are allowed.'}), 400
+            return jsonify({'error': 'No valid files uploaded. Only PDF, DOCX, and DOC files are allowed.'}), 400
 
         all_chunks = []
         for filename in saved_files:
