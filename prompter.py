@@ -64,9 +64,10 @@ Answer: Provide a clear, accurate answer based only on the context above. If the
         for i, chunk in enumerate(retrieved_chunks, 1):
             content = chunk.get('content', '')
             metadata = chunk.get('metadata', {})
-            source = metadata.get('source', 'Unknown')
-
-            part = f"[{i}] Source: {source}\n{content}\n"
+            filename = metadata.get("filename", metadata.get("source", "Unknown"))
+            page = metadata.get("page", None)
+            page_str = f", Page: {page}" if page is not None else ""
+            part = f"[{i}] Source: {filename}{page_str}\n{content}\n"
             part_tokens = self._estimate_tokens(part)
 
             if total_tokens + part_tokens > self.max_context_tokens:

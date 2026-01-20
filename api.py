@@ -9,12 +9,13 @@ from rag import QwenRAGSystem
 from werkzeug.utils import secure_filename
 import os
 import traceback
+from chunk import process_document
 
 app = Flask(__name__)
 CORS(app)
 
 UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = {'pdf', 'txt'}
+ALLOWED_EXTENSIONS = {'pdf', 'docx', 'doc'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 rag_system = QwenRAGSystem(
@@ -96,6 +97,17 @@ def upload():
 
         if not saved_files:
             return jsonify({'error': 'No valid files uploaded. Only PDF and TXT files are allowed.'}), 400
+
+        all_chunks = []
+        for filename in saved_files:
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            chunks = process_document(filepath, chunk_size=500, chunk_overlap=100)
+            all_chunks.extend(chunks)
+
+        if all_chunks:
+            texts = [c.page_content for c in all_chunks]
+            embeddings = rag_system.embedding_module.embed_documents(texts)
+            rag_system.vector_db.store_chunks_with_embeddings(all_chunks, embeddings)
 
         return jsonify({
             'success': True,
