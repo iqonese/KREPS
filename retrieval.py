@@ -35,6 +35,9 @@ class ContextRetrieval:
 
         contexts.sort(key=lambda x: x['similarity_score'], reverse=True)
         top_contexts = contexts[:k]
+        # Re-rank after sorting so rank matches the final returned order
+        for new_rank, ctx in enumerate(top_contexts, start=1):
+            ctx["rank"] = new_rank
 
         # NEW: Store similarity scores
         if store_scores:

@@ -5,11 +5,32 @@ from pathlib import Path
 from transformers import AutoTokenizer
 
 # Load BGE-M3 tokenizer (used only for token counting)
-tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-m3")
+_tokenizer = None
+
+def _get_tokenizer():
+    global _tokenizer
+    if _tokenizer is None:
+        try:
+            # Try offline / cached first (best for demo)
+            _tokenizer = AutoTokenizer.from_pretrained(
+                "BAAI/bge-m3",
+                local_files_only=True
+            )
+        except Exception:
+            # Fallback if cache exists or internet is available
+            _tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-m3")
+    return _tokenizer
+
 
 # This function is only for counting the number the tokens in a text
 def token_length(text: str) -> int:
-    return len(tokenizer.encode(text, add_special_tokens=False))
+    try:
+        tok = _get_tokenizer()
+        return len(tok.encode(text, add_special_tokens=False))
+    except Exception:
+        # Safe fallback for prototype/demo
+        return max(len(text) // 4, len(text.split()))
+
 
 
 def process_document(file_path, chunk_size=500, chunk_overlap=100):

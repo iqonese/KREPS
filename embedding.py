@@ -22,7 +22,7 @@ class VectorEmbeddingModule:
             model_name: HuggingFace model name for embeddings
         """
         print(f"Loading embedding model: {model_name}")
-        self.model = BGEM3FlagModel(model_name, use_fp16=True)
+        self.model = BGEM3FlagModel(model_name, use_fp16=False)
         self.embedding_dim = 1024  # BGE-M3 uses 1024 dimensions
         print(f"VectorEmbeddingModule initialized")
         print(f"Embedding dimension: {self.embedding_dim}")
