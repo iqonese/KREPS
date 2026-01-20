@@ -112,8 +112,9 @@ def upload():
         return jsonify({
             'success': True,
             'files_processed': len(saved_files),
+            'chunks_created': len(all_chunks),
             'files': saved_files,
-            'message': f'{len(saved_files)} document(s) uploaded successfully'
+            'message': f'{len(saved_files)} document(s) uploaded and ingested successfully'
         }), 200
 
     except Exception as e:
