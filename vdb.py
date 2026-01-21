@@ -10,6 +10,7 @@ from typing import List, Dict, Optional
 from pathlib import Path
 import json
 from datetime import datetime
+import os
 
 
 class VectorDatabase:
@@ -21,7 +22,8 @@ class VectorDatabase:
     def __init__(
             self,
             collection_name: str = "kreps_documents",
-            persist_directory: str = "./chroma_db"
+            persist_directory: str = os.path.join(os.path.dirname(__file__), "chroma_db")
+
     ):
         """
         Initialize ChromaDB vector database.
