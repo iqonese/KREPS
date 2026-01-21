@@ -43,13 +43,22 @@ class VectorEmbeddingModule:
         # FlagEmbedding returns dense vectors
         results = self.model.encode(
             text,
+            batch_size=batch_size,
+            max_length=max_length,
             return_dense=True,
             return_sparse=False,
             return_colbert=False,
             normalize_embeddings=True
         )
-        embeddings = np.array(results['dense_vecs'])
-        return embeddings
+
+        # BGEM3FlagModel.encode may return a dict
+        if isinstance(results, dict):
+            results = results.get("dense_vecs")
+
+        if results is None:
+            raise ValueError("Embedding model returned no dense_vecs output")
+
+        return results.tolist() if hasattr(results, "tolist") else results
 
     def embed_documents(self, documents: List[str]) -> List[List[float]]:
         """
