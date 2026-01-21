@@ -24,10 +24,10 @@ class PrompterModule:
         template = """You are a factual assistant.
         Answer the question using ONLY the provided context.
 
-        Rules:
-        - Give a direct and complete answer.
+        Style:
+        - Write a complete answer in a short paragraph (about 4–8 sentences).
         - Do NOT explain your reasoning or how you arrived at the answer.
-        - Do NOT include analysis or step-by-step logic.
+        - Include important details from the context (names, numbers, dates) when relevant.
         - If the answer is not explicitly stated in the context, say:
           "I don't know based on the provided context."
 

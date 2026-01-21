@@ -20,7 +20,7 @@ class QwenRAGSystem:
     def __init__(
             self,
             collection_name: str = "kreps_documents",
-            ollama_model: str = "qwen3:4b",
+            ollama_model: str = "qwen2.5:latest",
             ollama_url: str = "http://localhost:11434",
             top_k: int = 5,
             auto_cleanup: bool = True
@@ -99,8 +99,7 @@ class QwenRAGSystem:
                     "temperature": 0.2,
                     "num_predict": 2048,
                     "top_p": 0.9,
-                    "top_k": 40,
-                    "reasoning": False
+                    "top_k": 40
                 }
             }
 
@@ -188,7 +187,7 @@ class QwenRAGSystem:
 if __name__ == "__main__":
     rag = QwenRAGSystem(
         collection_name="kreps_documents",
-        ollama_model="qwen3:4b",
+        ollama_model="qwen2.5:latest",
         top_k=5,
         auto_cleanup=False
     )
