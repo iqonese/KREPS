@@ -31,6 +31,7 @@ class QwenRAGSystem:
         self.top_k = top_k
         self.collection_name = collection_name
         self.auto_cleanup = auto_cleanup
+        self.model = ollama_model
 
         self.vector_db = VectorDatabase(collection_name=collection_name)
         self.embedding_module = VectorEmbeddingModule()
