@@ -43,7 +43,7 @@ class SimilaritySearch:
             Dictionary with search results (ids, documents, distances, metadatas)
         """
         # Generate query embedding
-        query_embedding = self.embedding_module.embed_text(query)[0].tolist()
+        query_embedding = self.embedding_module.embed_text(query)
 
         # Search vector database
         results = self.vector_db.search_similar_chunks(

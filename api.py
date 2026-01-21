@@ -20,9 +20,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 rag_system = QwenRAGSystem(
     collection_name="kreps_documents",
-    ollama_model="qwen2.5:14b",
+    ollama_model="qwen3:4b",
     top_k=5,
-    auto_cleanup=True
+    auto_cleanup=False
 )
 
 

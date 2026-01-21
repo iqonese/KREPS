@@ -20,7 +20,7 @@ class QwenRAGSystem:
     def __init__(
             self,
             collection_name: str = "kreps_documents",
-            ollama_model: str = "qwen2.5:14b",
+            ollama_model: str = "qwen3:4b",
             ollama_url: str = "http://localhost:11434",
             top_k: int = 5,
             auto_cleanup: bool = True
@@ -88,31 +88,44 @@ class QwenRAGSystem:
             }
 
     def _generate_with_qwen(self, prompt: str) -> str:
-        """Generate answer using local Qwen 2.5 14B via Ollama."""
+        """Generate answer using local Ollama model (e.g., qwen3:4b)."""
         try:
-            response = requests.post(
-                self.generate_endpoint,
-                json={
-                    "model": self.ollama_model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.7,
-                        "num_predict": 1000,
-                        "top_p": 0.9,
-                        "top_k": 40
-                    }
-                },
-                timeout=120
-            )
+            payload = {
+                "model": self.ollama_model,  # e.g., "qwen3:4b"
+                "prompt": prompt,
+                "stream": False,  # keep False for simpler parsing
+                "options": {
+                    "temperature": 0.7,
+                    "num_predict": 1000,
+                    "top_p": 0.9,
+                    "top_k": 40
+                }
+            }
 
-            if response.status_code == 200:
-                return response.json()['response']
-            else:
-                return f"Error: Ollama API returned status {response.status_code}"
+            response = requests.post(self.generate_endpoint, json=payload, timeout=120)
+
+            # If Ollama returns an error, include the body so you can see why
+            if response.status_code != 200:
+                return f"Error: Ollama API returned status {response.status_code}: {response.text}"
+
+            # Parse JSON safely
+            try:
+                data = response.json()
+            except Exception:
+                return f"Error: Ollama returned non-JSON response: {response.text}"
+
+            # Ollama's response typically contains a "response" field when stream=False
+            text = data.get("response")
+
+            # If for some reason we got a streamed-like structure or empty response, surface it
+            if not text or not str(text).strip():
+                # Sometimes the server might return additional fields worth seeing
+                return f"Error: Ollama returned empty/missing 'response'. Raw JSON: {data}"
+
+            return str(text)
 
         except requests.exceptions.Timeout:
-            return "Error: Request timed out. Qwen 2.5 14B is taking too long to respond."
+            return "Error: Request timed out. Model is taking too long to respond."
 
         except requests.exceptions.ConnectionError:
             return "Error: Cannot connect to Ollama. Make sure Ollama is running on localhost:11434"
@@ -121,15 +134,16 @@ class QwenRAGSystem:
             return f"Error generating answer: {str(e)}"
 
     def _test_ollama(self) -> bool:
-        """Test if local Ollama is running and model is available."""
+        """Test if Ollama is running and the configured model exists locally."""
         try:
-            response = requests.post(
-                self.generate_endpoint,
-                json={"model": self.ollama_model, "prompt": "Hi", "stream": False},
-                timeout=10
-            )
-            return response.status_code == 200
-        except:
+            r = requests.get("http://localhost:11434/api/tags", timeout=3)
+            if r.status_code != 200:
+                return False
+
+            data = r.json()
+            models = [m.get("name") for m in data.get("models", [])]
+            return self.ollama_model in models
+        except Exception:
             return False
 
     def get_stats(self) -> Dict:
@@ -172,9 +186,9 @@ class QwenRAGSystem:
 if __name__ == "__main__":
     rag = QwenRAGSystem(
         collection_name="kreps_documents",
-        ollama_model="qwen2.5:14b",
+        ollama_model="qwen3:4b",
         top_k=5,
-        auto_cleanup=True
+        auto_cleanup=False
     )
 
     while True:
