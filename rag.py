@@ -95,8 +95,8 @@ class QwenRAGSystem:
                 "prompt": prompt,
                 "stream": False,  # keep False for simpler parsing
                 "options": {
-                    "temperature": 0.7,
-                    "num_predict": 1000,
+                    "temperature": 0.3,
+                    "num_predict": 2048,
                     "top_p": 0.9,
                     "top_k": 40
                 }
