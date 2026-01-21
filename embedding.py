@@ -27,29 +27,21 @@ class VectorEmbeddingModule:
         print(f"VectorEmbeddingModule initialized")
         print(f"Embedding dimension: {self.embedding_dim}")
 
-    def embed_text(self, text: Union[str, List[str]]) -> np.ndarray:
-        """
-        Generate embeddings for text using BGE-M3.
-
-        Args:
-            text: Single text string or list of texts
-
-        Returns:
-            numpy array of embeddings
-        """
-        if isinstance(text, str):
-            text = [text]
-
-        # FlagEmbedding returns dense vectors
+    def embed_text(self, text):
         results = self.model.encode(
             text,
-            return_dense=True,
-            return_sparse=False,
-            return_colbert=False,
-            normalize_embeddings=True
+            batch_size=32,
+            max_length=512
         )
-        embeddings = np.array(results['dense_vecs'])
-        return embeddings
+
+        # BGEM3FlagModel.encode may return a dict
+        if isinstance(results, dict):
+            results = results.get("dense_vecs")
+
+        if results is None:
+            raise ValueError("Embedding model returned no dense_vecs output")
+
+        return results.tolist() if hasattr(results, "tolist") else results
 
     def embed_documents(self, documents: List[str]) -> List[List[float]]:
         """
@@ -62,4 +54,4 @@ class VectorEmbeddingModule:
             List of embeddings (each embedding is a list of 1024 floats)
         """
         embeddings = self.embed_text(documents)
-        return embeddings.tolist()
+        return embeddings

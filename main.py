@@ -46,7 +46,7 @@ def run_query_mode(collection_name: str = "kreps_documents"):
     """
     rag = QwenRAGSystem(
         collection_name=collection_name,
-        ollama_model="qwen2.5:14b",
+        ollama_model="qwen2.5:latest",
         top_k=5,
         auto_cleanup=False
     )

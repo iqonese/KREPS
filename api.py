@@ -20,9 +20,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 rag_system = QwenRAGSystem(
     collection_name="kreps_documents",
-    ollama_model="qwen2.5:14b",
+    ollama_model="qwen2.5:latest",
     top_k=5,
-    auto_cleanup=True
+    auto_cleanup=False
 )
 
 
@@ -154,4 +154,4 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
