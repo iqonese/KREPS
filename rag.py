@@ -91,14 +91,15 @@ class QwenRAGSystem:
         """Generate answer using local Ollama model (e.g., qwen3:4b)."""
         try:
             payload = {
-                "model": self.ollama_model,  # e.g., "qwen3:4b"
+                "model": self.model,
                 "prompt": prompt,
-                "stream": False,  # keep False for simpler parsing
+                "stream": False,
                 "options": {
-                    "temperature": 0.3,
+                    "temperature": 0.2,
                     "num_predict": 2048,
                     "top_p": 0.9,
-                    "top_k": 40
+                    "top_k": 40,
+                    "reasoning": False
                 }
             }
 
