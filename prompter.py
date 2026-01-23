@@ -25,16 +25,19 @@ class PrompterModule:
         Answer the question using ONLY the provided context.
 
         Style:
-        - Write a complete answer in a short paragraph (about 4–8 sentences).
-        - Do NOT explain your reasoning or how you arrived at the answer.
-        - Include important details from the context (names, numbers, dates) when relevant.
-        - If the answer is not explicitly stated in the context, say:
+        - Write a complete answer in a short paragraph (4–8 sentences).
+        - Focus on concrete facts stated in the context.
+        - Explicitly include specific numbers, percentages, dates, costs, capacities, or quantities when they appear in the context.
+        - Do NOT explain reasoning, assumptions, or how conclusions were reached.
+        - Do NOT add background information not present in the context.
+        - If the answer is not explicitly stated in the context, say exactly:
           "I don't know based on the provided context."
 
         Context:
         {context}
 
-        Question: {question}
+        Question:
+        {question}
 
         Answer:
         """
