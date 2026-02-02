@@ -1,7 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Send, FileText, Trash2, Database, CheckCircle, Loader, X, Bot, User, FileSearch } from 'lucide-react';
+import { Upload, Send, FileText, Trash2, Database, CheckCircle, Loader, X, Bot, User, FileSearch, BarChart3, PieChart, TrendingUp, Zap } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000';
+
+// Easter Egg: Konami Code detector
+const useKonamiCode = (callback) => {
+  const [keys, setKeys] = useState([]);
+  const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      setKeys(prev => {
+        const newKeys = [...prev, e.key].slice(-10);
+        if (newKeys.join(',') === konamiCode.join(',')) {
+          callback();
+          return [];
+        }
+        return newKeys;
+      });
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState('chat');
@@ -21,7 +43,37 @@ function App() {
     document_count: 0,
     total_chunks: 0
   });
+  const [easterEggActive, setEasterEggActive] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Mock analytics data - replace with real API call
+  const [analytics, setAnalytics] = useState({
+    totalChunks: 846,
+    avgChunkSize: 512,
+    totalTokens: 438464,
+
+    documentTypes: [
+      { type: 'PDF', count: 23, percentage: 65 },
+      { type: 'DOCX', count: 10, percentage: 28 },
+    ],
+    chunkDistribution: [
+      { range: '0-200', count: 156 },
+      { range: '200-400', count: 423 },
+      { range: '400-600', count: 489 },
+
+    ],
+    recentActivity: [
+      { action: 'Document uploaded', file: 'Q4_Report.pdf', time: '2 hours ago' },
+      { action: 'Query processed', query: 'revenue growth', time: '3 hours ago' },
+      { action: 'Document uploaded', file: 'Strategy_2024.docx', time: '5 hours ago' }
+    ]
+  });
+
+  // Easter Egg activation
+  useKonamiCode(() => {
+    setEasterEggActive(true);
+    setTimeout(() => setEasterEggActive(false), 5000);
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -62,12 +114,10 @@ function App() {
 
     setUploadedFiles(prev => [...prev, ...newFiles]);
 
-    // Upload to backend
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
 
     try {
-      // Update status to processing
       newFiles.forEach(file => {
         setProcessingStatus(prev => ({ ...prev, [file.id]: 'processing' }));
       });
@@ -79,20 +129,16 @@ function App() {
 
       const results = await response.json();
 
-      // Update status to completed
       newFiles.forEach(file => {
         setProcessingStatus(prev => ({ ...prev, [file.id]: 'completed' }));
       });
 
-      // Reload collection info
       loadCollectionInfo();
-
       alert(`Successfully uploaded ${results.length} document(s)`);
     } catch (error) {
       console.error('Upload failed:', error);
       alert('Upload failed. Make sure the backend is running at ' + API_BASE);
 
-      // Update status to error
       newFiles.forEach(file => {
         setProcessingStatus(prev => ({ ...prev, [file.id]: 'error' }));
       });
@@ -179,29 +225,31 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Easter Egg Overlay */}
+      {easterEggActive && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 animate-pulse">
+          <div className="text-center">
+            <div className="text-6xl mb-4 animate-bounce">🎮</div>
+            <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
+              KONAMI CODE ACTIVATED!
+            </div>
+            <div className="text-xl text-white">You've unlocked the secret RAG power mode! 🚀</div>
+            <div className="text-sm text-gray-400 mt-4">May your embeddings be dense and your retrievals precise</div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-lg">
+              <div className={`bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-lg ${easterEggActive ? 'animate-spin' : ''}`}>
                 <Database className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-800">RAG Assistant</h1>
                 <p className="text-sm text-slate-500">Retrieval-Augmented Generation System</p>
-              </div>
-            </div>
-
-            {/* Collection Stats */}
-            <div className="flex gap-6 text-sm">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{collectionInfo.document_count}</div>
-                <div className="text-slate-500">Documents</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{collectionInfo.total_chunks}</div>
-                <div className="text-slate-500">Chunks</div>
               </div>
             </div>
           </div>
@@ -212,6 +260,17 @@ function App() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'dashboard'
+                ? 'bg-white text-blue-600 shadow-md'
+                : 'bg-white/50 text-slate-600 hover:bg-white'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            Dashboard
+          </button>
           <button
             onClick={() => setActiveTab('chat')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
@@ -236,10 +295,130 @@ function App() {
           </button>
         </div>
 
+        {/* Dashboard Tab */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-6">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-medium text-slate-600">Total Chunks</div>
+                  <Database className="w-5 h-5 text-blue-500" />
+                </div>
+                <div className="text-3xl font-bold text-slate-800">{analytics.totalChunks.toLocaleString()}</div>
+                <div className="text-xs text-green-600 mt-1">↑ 12% from last week</div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-medium text-slate-600">Avg Chunk Size</div>
+                  <Zap className="w-5 h-5 text-yellow-500" />
+                </div>
+                <div className="text-3xl font-bold text-slate-800">{analytics.avgChunkSize}</div>
+                <div className="text-xs text-slate-500 mt-1">tokens per chunk</div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-medium text-slate-600">Total Tokens</div>
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
+                </div>
+                <div className="text-3xl font-bold text-slate-800">{(analytics.totalTokens / 1000).toFixed(0)}K</div>
+                <div className="text-xs text-slate-500 mt-1">in vector database</div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-medium text-slate-600">Documents</div>
+                  <FileText className="w-5 h-5 text-green-500" />
+                </div>
+                <div className="text-3xl font-bold text-slate-800">{collectionInfo.document_count}</div>
+                <div className="text-xs text-slate-500 mt-1">files indexed</div>
+              </div>
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Document Types */}
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <PieChart className="w-5 h-5 text-blue-500" />
+                  <h3 className="text-lg font-semibold text-slate-800">Document Types</h3>
+                </div>
+                <div className="space-y-3">
+                  {analytics.documentTypes.map((doc, idx) => (
+                    <div key={idx}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-slate-700">{doc.type}</span>
+                        <span className="text-sm text-slate-500">{doc.count} files ({doc.percentage}%)</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all"
+                          style={{ width: `${doc.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chunk Distribution */}
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-5 h-5 text-purple-500" />
+                  <h3 className="text-lg font-semibold text-slate-800">Chunk Size Distribution</h3>
+                </div>
+                <div className="space-y-3">
+                  {analytics.chunkDistribution.map((chunk, idx) => {
+                    const maxCount = Math.max(...analytics.chunkDistribution.map(c => c.count));
+                    const percentage = (chunk.count / maxCount) * 100;
+                    return (
+                      <div key={idx}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-slate-700">{chunk.range} tokens</span>
+                          <span className="text-sm text-slate-500">{chunk.count} chunks</span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2">
+                          <div
+                            className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Recent Activity</h3>
+              <div className="space-y-3">
+                {analytics.recentActivity.map((activity, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-slate-800">{activity.action}</div>
+                      <div className="text-xs text-slate-500">{activity.file || activity.query}</div>
+                    </div>
+                    <div className="text-xs text-slate-400">{activity.time}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Easter Egg Hint */}
+            <div className="text-center text-xs text-slate-400 mt-8">
+              Psst... try the Konami Code 🎮
+            </div>
+          </div>
+        )}
+
         {/* Chat Tab */}
         {activeTab === 'chat' && (
           <div className="bg-white rounded-xl shadow-md flex flex-col h-[calc(100vh-280px)]">
-            {/* Chat Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.map(message => (
                 <div
@@ -263,7 +442,6 @@ function App() {
                       <p className="leading-relaxed">{message.content}</p>
                     </div>
 
-                    {/* Sources for assistant messages */}
                     {message.role === 'assistant' && message.sources && message.sources.length > 0 && (
                       <div className="mt-2 space-y-1">
                         <div className="flex items-center gap-1 text-xs text-slate-500 mb-1">
@@ -277,7 +455,6 @@ function App() {
                           >
                             <FileText className="w-3 h-3" />
                             {source.filename} (p.{source.page})
-                            <span className="text-blue-500">• {(source.relevance * 100).toFixed(0)}%</span>
                           </div>
                         ))}
                       </div>
@@ -296,7 +473,6 @@ function App() {
                 </div>
               ))}
 
-              {/* Thinking indicator */}
               {isThinking && (
                 <div className="flex gap-3">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
@@ -315,7 +491,6 @@ function App() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <div className="border-t border-slate-200 p-4">
               <div className="flex gap-3">
                 <input
@@ -346,7 +521,6 @@ function App() {
         {/* Documents Tab */}
         {activeTab === 'documents' && (
           <div className="space-y-6">
-            {/* Upload Area */}
             <div className="bg-white rounded-xl shadow-md p-8">
               <label className="block">
                 <div className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer">
@@ -368,7 +542,6 @@ function App() {
               </label>
             </div>
 
-            {/* File List */}
             {uploadedFiles.length > 0 && (
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h3 className="text-lg font-semibold text-slate-800 mb-4">Uploaded Files</h3>
